@@ -1,16 +1,17 @@
-class JwtPayloadModel {
+class JwtPayload {
   final int userId;
   final String role;
 
-  JwtPayloadModel({
+  JwtPayload({
     required this.userId,
     required this.role,
   });
 
-  factory JwtPayloadModel.fromJson(Map<String, dynamic> json) {
-    return JwtPayloadModel(
-      userId: json['user_id'],
-      role: json['role'],
+  factory JwtPayload.fromMap(Map<String, dynamic> map) {
+    final data = map['data'];
+    return JwtPayload(
+      userId: data['user_id'],
+      role: data['role'],
     );
   }
 }

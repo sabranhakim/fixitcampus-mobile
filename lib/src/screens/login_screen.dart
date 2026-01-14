@@ -1,8 +1,10 @@
-import 'package:fixitcampus_mobile/src/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import '../services/api_service.dart';
+
+import '../models/jwt_payload.dart';
+import '../services/user_service.dart';
 import '../services/storage_service.dart';
+import 'register_screen.dart';
 import 'home_screen.dart';
 import 'admin_screen.dart';
 
@@ -14,55 +16,52 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final ApiService _apiService = ApiService();
-  final StorageService _storageService = StorageService();
-  String? _errorMessage;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
   bool _isLoading = false;
+  String? _error;
 
   Future<void> _login() async {
     setState(() {
-      _errorMessage = null;
       _isLoading = true;
+      _error = null;
     });
 
-    final email = _emailController.text;
-    final password = _passwordController.text;
-
     try {
-      final response = await ApiService.login(email, password);
+      final response = await UserService.login(
+        _emailController.text,
+        _passwordController.text,
+      );
 
       if (response != null && response['token'] != null) {
         final token = response['token'];
-        await _storageService.saveToken(token);
+        await StorageService().saveToken(token);
 
-        // Decode JWT to get user role
-        Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-        
-        // Add this line for debugging
-        print('Decoded Token: $decodedToken'); 
+        final decoded = JwtDecoder.decode(token);
+        final payload = JwtPayload.fromMap(decoded);
 
-        final userRole = decodedToken['data']['role'];
+        if (!mounted) return;
 
-        if (userRole == 'admin') {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const AdminScreen()),
+        if (payload.role == 'admin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminScreen()),
           );
         } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
           );
         }
       } else {
         setState(() {
-          _errorMessage =
-              response?['error'] ?? 'Login failed. Please try again.';
+          _error = response?['error'] ?? 'Login gagal';
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'An error occurred: $e';
+        _error = 'Terjadi kesalahan sistem';
       });
     } finally {
       setState(() {
@@ -74,59 +73,144 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TextField(
-              controller: _emailController,
-              enabled: !_isLoading,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
+      backgroundColor: const Color(0xFFFFF8EE),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              // 🏫 HEADER
+              Icon(
+                Icons.apartment,
+                size: 80,
+                color: Colors.brown.shade600,
               ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16.0),
-            TextField(
-              controller: _passwordController,
-              enabled: !_isLoading,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-            if (_errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Text(
-                  _errorMessage!,
-                  style: const TextStyle(color: Colors.red),
+              const SizedBox(height: 12),
+              const Text(
+                'Sistem Pelaporan\nKerusakan Fasilitas Kampus',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4E342E),
                 ),
               ),
-            const SizedBox(height: 24.0),
-            _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _login,
-                    child: const Text('Login'),
+              const SizedBox(height: 32),
+
+              // 📦 CARD LOGIN
+              Card(
+                elevation: 6,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'Login',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF6D4C41),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // EMAIL
+                      TextField(
+                        controller: _emailController,
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          prefixIcon: const Icon(Icons.email),
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // PASSWORD
+                      TextField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: const Icon(Icons.lock),
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+
+                      // ERROR
+                      if (_error != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Text(
+                            _error!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+
+                      const SizedBox(height: 24),
+
+                      // BUTTON LOGIN
+                      _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : ElevatedButton(
+                              onPressed: _login,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color(0xFF6D4C41),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'LOGIN',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+
+                      const SizedBox(height: 12),
+
+                      // REGISTER
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const RegisterScreen()),
+                          );
+                        },
+                        child: const Text(
+                          'Belum punya akun? Register',
+                          style: TextStyle(
+                            color: Color(0xFF2E7D32),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-            const SizedBox(height: 16.0),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                      builder: (context) => const RegisterScreen()),
-                );
-              },
-              child: const Text('Don\'t have an account? Register'),
-            ),
-          ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

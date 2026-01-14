@@ -7,9 +7,10 @@ class HomeScreen extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     await StorageService().deleteToken();
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-      (Route<dynamic> route) => false,
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (_) => false,
     );
   }
 
@@ -25,9 +26,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: const Center(
-        child: Text('Welcome, User!'),
-      ),
+      body: const Center(child: Text('Welcome User')),
     );
   }
 }
