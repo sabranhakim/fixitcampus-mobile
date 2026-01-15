@@ -43,8 +43,9 @@ class _AdminScreenState extends State<AdminScreen> {
         status: 'Selesai'),
   ];
 
-  Future<void> _logout(BuildContext context) async {
+  Future<void> _logout() async {
     await StorageService().deleteToken();
+    if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const LoginScreen()),
       (Route<dynamic> route) => false,
@@ -66,7 +67,7 @@ class _AdminScreenState extends State<AdminScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),
+            onPressed: _logout,
           ),
         ],
       ),
@@ -155,7 +156,7 @@ class _AdminScreenState extends State<AdminScreen> {
     }
     return Chip(
       label: Text(status),
-      backgroundColor: color.withOpacity(0.2),
+      backgroundColor: color.withAlpha(51),
       labelStyle: TextStyle(color: color),
     );
   }

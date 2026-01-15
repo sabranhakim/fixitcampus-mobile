@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class UserService {
-  static const String baseUrl = 'http://10.193.215.113:8081';
+  static const String baseUrl = 'http://192.168.1.22:8081';
 
   // LOGIN
   static Future<Map<String, dynamic>?> login(
