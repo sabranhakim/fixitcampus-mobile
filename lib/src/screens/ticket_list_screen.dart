@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import '../models/ticket.dart';
-import '../services/ticket_service.dart';
-import 'create_ticket_screen.dart';
+import 'package:fixitcampus_mobile/src/models/ticket.dart';
+import 'package:fixitcampus_mobile/src/screens/ticket_detail_screen.dart';
+import 'package:fixitcampus_mobile/src/services/ticket_service.dart';
 
 class TicketListScreen extends StatefulWidget {
-  const TicketListScreen({super.key});
+  final String token;
+  const TicketListScreen({super.key, required this.token});
 
   @override
   State<TicketListScreen> createState() => _TicketListScreenState();
@@ -21,14 +22,25 @@ class _TicketListScreenState extends State<TicketListScreen> {
   }
 
   void _loadTickets() {
-    _tickets = _ticketService.getTickets();
+    _tickets = _ticketService.getTickets(widget.token);
   }
 
-  void _navigateToCreateTicketScreen() {
+  Future<void> _refreshTickets() async { // Add refresh method
+    setState(() {
+      _loadTickets();
+    });
+  }
+
+  void _navigateToDetailScreen(Ticket ticket) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const CreateTicketScreen()),
-    ).then((_) => setState(() => _loadTickets()));
+      MaterialPageRoute(
+        builder: (_) => TicketDetailScreen(
+          ticketId: ticket.id.toString(),
+          token: widget.token,
+        ),
+      ),
+    );
   }
 
   Color _statusColor(String status) {
@@ -44,14 +56,9 @@ class _TicketListScreenState extends State<TicketListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F2),
-      appBar: AppBar(
-        title: const Text('Daftar Tiket'),
-        backgroundColor: const Color(0xFF795548),
-        foregroundColor: Colors.white,
-      ),
-      body: FutureBuilder<List<Ticket>>(
+    return RefreshIndicator( // Wrap with RefreshIndicator
+      onRefresh: _refreshTickets,
+      child: FutureBuilder<List<Ticket>>(
         future: _tickets,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -75,24 +82,23 @@ class _TicketListScreenState extends State<TicketListScreen> {
                 elevation: 4,
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
-                  leading: const Icon(Icons.report_problem, color: Color(0xFF795548)),
-                  title: Text(ticket.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  leading:
+                      const Icon(Icons.report_problem, color: Color(0xFF795548)),
+                  title: Text(ticket.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(ticket.description),
                   trailing: Chip(
                     label: Text(ticket.status),
-                    backgroundColor: _statusColor(ticket.status).withOpacity(0.2),
+                    backgroundColor:
+                        _statusColor(ticket.status).withOpacity(0.2),
                     labelStyle: TextStyle(color: _statusColor(ticket.status)),
                   ),
+                  onTap: () => _navigateToDetailScreen(ticket),
                 ),
               );
             },
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF795548),
-        onPressed: _navigateToCreateTicketScreen,
-        child: const Icon(Icons.add),
       ),
     );
   }

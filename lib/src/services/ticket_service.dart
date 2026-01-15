@@ -1,59 +1,111 @@
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import '../models/ticket.dart';
-import 'storage_service.dart';
 
 class TicketService {
-  final String _baseUrl = 'http://10.101.157.163:8082/tickets';
-  final StorageService _storageService = StorageService();
+  // Use 10.0.2.2 for Android emulator to connect to host machine's localhost
+  // If running on a physical device, replace with your host machine's actual IP address
+  static const String baseUrl = 'http://10.101.157.163:8082';
 
-  // ================= GET TICKETS =================
-  Future<List<Ticket>> getTickets() async {
-    final token = await _storageService.getToken();
-    if (token == null) {
-      throw Exception('Token not found');
-    }
+  // GET ALL TICKETS
+  Future<List<Ticket>> getTickets(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/tickets'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
 
-    final response = await http.get(
-      Uri.parse(_baseUrl),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final dynamic ticketJson = json.decode(response.body);
-      if (ticketJson == null) {
-        return [];
+      if (response.statusCode == 200) {
+        final List<dynamic> body = jsonDecode(response.body);
+        return body.map((dynamic item) => Ticket.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load tickets: ${response.statusCode} ${response.body}');
       }
-      final List<dynamic> ticketList = ticketJson;
-      return ticketList.map((json) => Ticket.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load tickets');
+    } on SocketException {
+      throw Exception('No internet connection');
+    } catch (e) {
+      throw Exception('An unexpected error occurred: $e');
     }
   }
 
-  // ================= CREATE TICKET =================
-  Future<void> createTicket(String title, String description) async {
-    final token = await _storageService.getToken();
-    if (token == null) {
-      throw Exception('Token not found');
+  // GET TICKET BY ID
+  static Future<Ticket> getTicket(String id, String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/tickets/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> body = jsonDecode(response.body);
+        return Ticket.fromJson(body);
+      } else {
+        throw Exception('Failed to load ticket: ${response.statusCode} ${response.body}');
+      }
+    } on SocketException {
+      throw Exception('No internet connection');
+    } catch (e) {
+      throw Exception('An unexpected error occurred: $e');
     }
+  }
 
-    final response = await http.post(
-      Uri.parse(_baseUrl),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: json.encode({
-        'title': title,
-        'description': description,
-      }),
-    );
+  // CREATE TICKET
+  Future<Ticket> createTicket(
+      String title, String description, String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/tickets'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'title': title,
+          'description': description,
+        }),
+      );
 
-    if (response.statusCode != 201) {
-      throw Exception('Failed to create ticket');
+      if (response.statusCode == 201) {
+        final Map<String, dynamic> body = jsonDecode(response.body);
+        return Ticket.fromJson(body);
+      } else {
+        throw Exception('Failed to create ticket: ${response.statusCode} ${response.body}');
+      }
+    } on SocketException {
+      throw Exception('No internet connection');
+    } catch (e) {
+      throw Exception('An unexpected error occurred: $e');
+    }
+  }
+
+  // UPDATE TICKET STATUS
+  Future<void> updateTicketStatus(
+      String id, String status, String token) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/tickets/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'status': status}),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update ticket status: ${response.statusCode} ${response.body}');
+      }
+    } on SocketException {
+      throw Exception('No internet connection');
+    } catch (e) {
+      throw Exception('An unexpected error occurred: $e');
     }
   }
 }

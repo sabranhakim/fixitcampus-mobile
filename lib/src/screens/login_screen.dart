@@ -7,6 +7,8 @@ import '../services/storage_service.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
 import 'admin_screen.dart';
+import 'admin_main_screen.dart'; // Import AdminMainScreen
+import 'user_main_screen.dart'; // Import UserMainScreen
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -53,12 +55,12 @@ class _LoginScreenState extends State<LoginScreen> {
       if (payload.role == 'admin') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const AdminScreen()),
+          MaterialPageRoute(builder: (_) => AdminMainScreen(token: token)), // Navigate to AdminMainScreen
         );
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(builder: (_) => UserMainScreen(token: token)),
         );
       }
     } else {

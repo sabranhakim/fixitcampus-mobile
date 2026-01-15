@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:fixitcampus_mobile/src/models/user.dart'; // Import the User model
 
 class UserService {
   static const String baseUrl = 'http://10.101.157.163:8081';
@@ -60,5 +61,29 @@ class UserService {
     );
 
     return jsonDecode(response.body);
+  }
+
+  // GET ALL USERS
+  static Future<List<User>> getAllUsers(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users'), // Assuming /users endpoint
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> body = jsonDecode(response.body);
+        return body.map((dynamic item) => User.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load users: ${response.statusCode} ${response.body}');
+      }
+    } on SocketException {
+      throw Exception('No internet connection');
+    } catch (e) {
+      throw Exception('An unexpected error occurred: $e');
+    }
   }
 }

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/ticket_service.dart';
 
 class CreateTicketScreen extends StatefulWidget {
-  const CreateTicketScreen({super.key});
+  final String token;
+  const CreateTicketScreen({super.key, required this.token});
 
   @override
   State<CreateTicketScreen> createState() => _CreateTicketScreenState();
@@ -23,6 +24,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
         await _ticketService.createTicket(
           _titleController.text,
           _descriptionController.text,
+          widget.token,
         );
 
         if (mounted) {
