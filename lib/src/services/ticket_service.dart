@@ -4,7 +4,7 @@ import '../models/ticket.dart';
 import 'storage_service.dart';
 
 class TicketService {
-  final String _baseUrl = 'http://192.168.1.22:8082/tickets';
+  final String _baseUrl = 'http://10.0.2.2:8082/tickets';
   final StorageService _storageService = StorageService();
 
   // ================= GET TICKETS =================
