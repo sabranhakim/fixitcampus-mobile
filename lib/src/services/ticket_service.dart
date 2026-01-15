@@ -4,7 +4,7 @@ import '../models/ticket.dart';
 import 'storage_service.dart';
 
 class TicketService {
-  final String _baseUrl = 'http://10.0.2.2:8082/tickets';
+  final String _baseUrl = 'http://10.101.157.163:8082/tickets';
   final StorageService _storageService = StorageService();
 
   // ================= GET TICKETS =================
@@ -22,8 +22,12 @@ class TicketService {
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> ticketJson = json.decode(response.body);
-      return ticketJson.map((json) => Ticket.fromJson(json)).toList();
+      final dynamic ticketJson = json.decode(response.body);
+      if (ticketJson == null) {
+        return [];
+      }
+      final List<dynamic> ticketList = ticketJson;
+      return ticketList.map((json) => Ticket.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load tickets');
     }

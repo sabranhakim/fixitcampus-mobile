@@ -1,22 +1,42 @@
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 
 class UserService {
-  static const String baseUrl = 'http://10.0.2.2:8081';
+  static const String baseUrl = 'http://10.101.157.163:8081';
 
   // LOGIN
-  static Future<Map<String, dynamic>?> login(
+  static Future<Map<String, dynamic>> login(
       String email, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
 
-    return jsonDecode(response.body);
+      final Map<String, dynamic> body = jsonDecode(response.body);
+
+      if (response.statusCode >= 400) {
+        return {
+          'error': body['error'] ?? 'Login failed',
+        };
+      }
+
+      return body;
+    } on SocketException {
+      return {
+        'error': 'No internet connection',
+      };
+    } catch (e) {
+      return {
+        'error': 'An unexpected error occurred: $e',
+      };
+    }
   }
 
   // REGISTER (ADMIN / USER)

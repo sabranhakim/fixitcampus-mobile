@@ -28,43 +28,42 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
 
-    try {
-      final response = await UserService.login(
-        _emailController.text,
-        _passwordController.text,
-      );
+    final response = await UserService.login(
+      _emailController.text,
+      _passwordController.text,
+    );
 
-      if (response != null && response['token'] != null) {
-        final token = response['token'];
-        await StorageService().saveToken(token);
-
-        final decoded = JwtDecoder.decode(token);
-        final payload = JwtPayload.fromMap(decoded);
-
-        if (!mounted) return;
-
-        if (payload.role == 'admin') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const AdminScreen()),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-          );
-        }
-      } else {
-        setState(() {
-          _error = response?['error'] ?? 'Login gagal';
-        });
-      }
-    } catch (e) {
+    if (response['error'] != null) {
       setState(() {
-        _error = 'Terjadi kesalahan sistem';
+        _error = response['error'];
+        _isLoading = false;
       });
-    } finally {
+      return;
+    }
+
+    if (response['token'] != null) {
+      final token = response['token'];
+      await StorageService().saveToken(token);
+
+      final decoded = JwtDecoder.decode(token);
+      final payload = JwtPayload.fromMap(decoded);
+
+      if (!mounted) return;
+
+      if (payload.role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
+    } else {
       setState(() {
+        _error = 'Login failed';
         _isLoading = false;
       });
     }
