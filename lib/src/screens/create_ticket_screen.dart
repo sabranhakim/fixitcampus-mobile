@@ -16,10 +16,13 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
   final TicketService _ticketService = TicketService();
   bool _isLoading = false;
 
+  static const Color primaryColor = Color(0xFF795548);
+  static const Color backgroundColor = Color(0xFFFFF8F2);
+  static const Color fieldColor = Color(0xFFF3ECE7);
+
   Future<void> _submitTicket() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-
       try {
         await _ticketService.createTicket(
           _titleController.text,
@@ -43,82 +46,115 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
     }
   }
 
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: primaryColor),
+      filled: true,
+      fillColor: fieldColor,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F2),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         title: const Text('Buat Tiket'),
-        backgroundColor: const Color(0xFF795548),
+        backgroundColor: primaryColor,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Card(
+            elevation: 10,
+            shadowColor: primaryColor.withOpacity(0.25),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(24),
             ),
-            elevation: 6,
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               child: Form(
                 key: _formKey,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(Icons.assignment, size: 60, color: Color(0xFF795548)),
+                    CircleAvatar(
+                      radius: 36,
+                      backgroundColor: fieldColor,
+                      child: const Icon(
+                        Icons.assignment,
+                        size: 40,
+                        color: primaryColor,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     const Text(
                       'Form Tiket Kerusakan',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                      ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
 
                     TextFormField(
                       controller: _titleController,
-                      decoration: InputDecoration(
-                        labelText: 'Judul',
-                        prefixIcon: const Icon(Icons.title),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                      decoration: _inputDecoration('Judul', Icons.title),
                       validator: (value) =>
                           value == null || value.isEmpty ? 'Judul wajib diisi' : null,
                     ),
-
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
 
                     TextFormField(
                       controller: _descriptionController,
                       maxLines: 4,
-                      decoration: InputDecoration(
-                        labelText: 'Deskripsi',
-                        prefixIcon: const Icon(Icons.description),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                      decoration:
+                          _inputDecoration('Deskripsi', Icons.description),
                       validator: (value) =>
-                          value == null || value.isEmpty ? 'Deskripsi wajib diisi' : null,
+                          value == null || value.isEmpty
+                              ? 'Deskripsi wajib diisi'
+                              : null,
                     ),
-
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
 
                     SizedBox(
-                      width: double.infinity,
-                      height: 48,
+                      height: 50,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF795548),
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
                           ),
+                          elevation: 4,
                         ),
                         onPressed: _isLoading ? null : _submitTicket,
                         child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text('KIRIM TIKET'),
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'KIRIM TIKET',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                   ],

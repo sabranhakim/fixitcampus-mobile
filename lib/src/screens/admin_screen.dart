@@ -16,8 +16,13 @@ class AdminScreen extends StatefulWidget {
 class _AdminScreenState extends State<AdminScreen> {
   final TicketService _ticketService = TicketService();
   final ReportingService _reportingService = ReportingService();
+
   late Future<List<Ticket>> _reports;
   late Future<ReportSummary> _summary;
+
+  static const Color primaryColor = Color(0xFF795548);
+  static const Color backgroundColor = Color(0xFFFFF8F2);
+  static const Color fieldColor = Color(0xFFF3ECE7);
 
   @override
   void initState() {
@@ -34,10 +39,10 @@ class _AdminScreenState extends State<AdminScreen> {
     _summary = _reportingService.getSummary(widget.token);
   }
 
-  Future<void> _refreshData() async { // Corrected: Added Future<void> and made it a proper method
+  Future<void> _refreshData() async {
     setState(() {
-      _reports = _ticketService.getTickets(widget.token);
-      _summary = _reportingService.getSummary(widget.token);
+      _loadReports();
+      _loadSummary();
     });
   }
 
@@ -50,188 +55,208 @@ class _AdminScreenState extends State<AdminScreen> {
           token: widget.token,
         ),
       ),
-    ).then((_) => setState(() {
-          _loadReports();
-          _loadSummary();
-        }));
+    ).then((_) => _refreshData());
   }
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: _refreshData,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Dashboard Header
-            const Text(
-              'Selamat Datang, Admin!',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF4E342E),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Ringkasan Laporan dan Manajemen Tiket',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Dashboard Stats Cards
-            FutureBuilder<ReportSummary>(
-              future: _summary,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData) {
-                  return const Center(child: Text('No summary data'));
-                }
-
-                final summary = snapshot.data!;
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Expanded(
-                      child: _buildStatCard('Total',
-                          summary.totalTickets.toString(), Colors.indigo),
-                    ),
-                    const SizedBox(width: 8), // Add spacing between cards
-                    Expanded(
-                      child: _buildStatCard('Tertunda',
-                          summary.openTickets.toString(), Colors.amber.shade700),
-                    ),
-                    const SizedBox(width: 8), // Add spacing between cards
-                    Expanded(
-                      child: _buildStatCard('Selesai',
-                          summary.closedTickets.toString(), Colors.green.shade600),
-                    ),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 32),
-
-            // List of Reports Header
-            const Text(
-              'Daftar Laporan Terbaru',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF4E342E),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // List of Reports
-            FutureBuilder<List<Ticket>>(
-              future: _reports,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No reports'));
-                }
-
-                final reports = snapshot.data!;
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(), // Important for nested scroll views
-                  itemCount: reports.length,
-                  itemBuilder: (context, index) {
-                    final report = reports[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(16),
-                        leading: CircleAvatar(
-                          backgroundColor: _getStatusColor(report.status),
-                          child: Icon(
-                            _getStatusIcon(report.status),
-                            color: Colors.white,
-                          ),
-                        ),
-                        title: Text(
-                          report.title,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text(
-                              'Status: ${report.status}',
-                              style: TextStyle(color: _getStatusColor(report.status)),
-                            ),
-                            Text(
-                              'Dibuat pada ${report.createdAt.toString().split(' ')[0]}',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                        onTap: () => _navigateToDetail(report),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ],
-        ),
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        // TITLE DIHAPUS
       ),
-    );
-  }
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // HEADER
+              const Text(
+                'Selamat Datang, Admin',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: primaryColor,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Ringkasan laporan & manajemen tiket',
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 24),
 
-  Widget _buildStatCard(String title, String count, Color color) {
-    return Card(
-      color: color,
-      elevation: 6,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: [color.withOpacity(0.8), color],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+              // SUMMARY
+              FutureBuilder<ReportSummary>(
+                future: _summary,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return const Text('Gagal memuat ringkasan');
+                  }
+
+                  final s = snapshot.data!;
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: _statCard(
+                          'Total',
+                          s.totalTickets.toString(),
+                          Icons.list_alt,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _statCard(
+                          'Tertunda',
+                          s.openTickets.toString(),
+                          Icons.hourglass_empty,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _statCard(
+                          'Selesai',
+                          s.closedTickets.toString(),
+                          Icons.check_circle,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+
+              const SizedBox(height: 32),
+
+              // LIST HEADER
+              const Text(
+                'Daftar Laporan',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: primaryColor,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // REPORT LIST
+              FutureBuilder<List<Ticket>>(
+                future: _reports,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return const Text('Gagal memuat laporan');
+                  }
+                  if (snapshot.data!.isEmpty) {
+                    return const Text('Belum ada laporan');
+                  }
+
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      final ticket = snapshot.data![index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        elevation: 6,
+                        shadowColor: primaryColor.withOpacity(0.2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(16),
+                          leading: CircleAvatar(
+                            backgroundColor:
+                                _statusColor(ticket.status).withOpacity(0.15),
+                            child: Icon(
+                              _statusIcon(ticket.status),
+                              color: _statusColor(ticket.status),
+                            ),
+                          ),
+                          title: Text(
+                            ticket.title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Text(
+                                'Status: ${ticket.status}',
+                                style: TextStyle(
+                                  color: _statusColor(ticket.status),
+                                  fontSize: 13,
+                                ),
+                              ),
+                              Text(
+                                'Dibuat: ${ticket.createdAt.toString().split(' ')[0]}',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                          onTap: () => _navigateToDetail(ticket),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  // ===== COMPONENTS =====
+
+  Widget _statCard(String title, String value, IconData icon) {
+    return Card(
+      elevation: 8,
+      shadowColor: primaryColor.withOpacity(0.25),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Container(
         padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: fieldColor,
+          borderRadius: BorderRadius.circular(18),
+        ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
-            ),
+            Icon(icon, color: primaryColor),
             const SizedBox(height: 8),
             Text(
-              count,
+              title,
+              style: const TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
               style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white),
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: primaryColor,
+              ),
             ),
           ],
         ),
@@ -239,12 +264,12 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
-  Color _getStatusColor(String status) {
+  Color _statusColor(String status) {
     switch (status) {
       case 'open':
-        return Colors.blue;
-      case 'in_progress':
         return Colors.orange;
+      case 'in_progress':
+        return Colors.blue;
       case 'closed':
         return Colors.green;
       default:
@@ -252,7 +277,7 @@ class _AdminScreenState extends State<AdminScreen> {
     }
   }
 
-  IconData _getStatusIcon(String status) {
+  IconData _statusIcon(String status) {
     switch (status) {
       case 'open':
         return Icons.warning_amber;
