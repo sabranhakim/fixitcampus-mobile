@@ -97,21 +97,23 @@ class _AdminScreenState extends State<AdminScreen> {
                 }
 
                 final summary = snapshot.data!;
-                return GridView.count(
-                  crossAxisCount: 2, // Changed to 2 for better visual balance
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(), // Important for nested scroll views
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatCard('Total Laporan',
-                        summary.totalTickets.toString(), Colors.indigo),
-                    _buildStatCard('Tertunda', summary.openTickets.toString(),
-                        Colors.amber.shade700),
-                    _buildStatCard('Selesai', summary.closedTickets.toString(),
-                        Colors.green.shade600),
-                    _buildStatCard(
-                        'Belum Ditugaskan', 'N/A', Colors.red.shade400), // Placeholder
+                    Expanded(
+                      child: _buildStatCard('Total',
+                          summary.totalTickets.toString(), Colors.indigo),
+                    ),
+                    const SizedBox(width: 8), // Add spacing between cards
+                    Expanded(
+                      child: _buildStatCard('Tertunda',
+                          summary.openTickets.toString(), Colors.amber.shade700),
+                    ),
+                    const SizedBox(width: 8), // Add spacing between cards
+                    Expanded(
+                      child: _buildStatCard('Selesai',
+                          summary.closedTickets.toString(), Colors.green.shade600),
+                    ),
                   ],
                 );
               },

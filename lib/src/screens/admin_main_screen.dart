@@ -4,6 +4,7 @@ import 'package:fixitcampus_mobile/src/screens/notification_screen.dart'; // Adm
 import 'package:fixitcampus_mobile/src/services/storage_service.dart';
 import 'package:fixitcampus_mobile/src/screens/login_screen.dart'; // For logout navigation
 import 'package:fixitcampus_mobile/src/screens/user_management_screen.dart'; // Import UserManagementScreen
+import 'package:fixitcampus_mobile/src/screens/admin_settings_screen.dart'; // Import AdminSettingsScreen
 
 class AdminMainScreen extends StatefulWidget {
   final String token;
@@ -25,7 +26,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
       AdminScreen(token: widget.token),
       NotificationScreen(token: widget.token), // Admin view for notifications
       UserManagementScreen(token: widget.token), // Use UserManagementScreen
-      const Center(child: Text('Settings Screen - Coming Soon')),
+      const AdminSettingsScreen(), // Use the new AdminSettingsScreen
     ];
   }
 

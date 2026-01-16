@@ -21,8 +21,13 @@ class TicketService {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> body = jsonDecode(response.body);
-        return body.map((dynamic item) => Ticket.fromJson(item)).toList();
+        final dynamic decodedBody = jsonDecode(response.body);
+        if (decodedBody is List) {
+          return decodedBody.map((dynamic item) => Ticket.fromJson(item)).toList();
+        } else {
+          // If the decoded body is not a list (e.g., null or an empty object), return an empty list
+          return [];
+        }
       } else {
         throw Exception('Failed to load tickets: ${response.statusCode} ${response.body}');
       }

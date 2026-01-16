@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fixitcampus_mobile/src/screens/home_screen.dart';
 import 'package:fixitcampus_mobile/src/screens/ticket_list_screen.dart';
-import 'package:fixitcampus_mobile/src/screens/create_ticket_screen.dart';
-// import 'package:fixitcampus_mobile/src/screens/notification_screen.dart'; // Remove import for NotificationScreen
+// import 'package:fixitcampus_mobile/src/screens/create_ticket_screen.dart'; // Removed CreateTicketScreen from direct tab
 import 'package:fixitcampus_mobile/src/screens/profile_screen.dart';
 import 'package:fixitcampus_mobile/src/services/storage_service.dart';
 import 'package:fixitcampus_mobile/src/screens/login_screen.dart';
@@ -25,13 +24,10 @@ class _UserMainScreenState extends State<UserMainScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize _widgetOptions here, passing the callback to HomeScreen
     _widgetOptions = <Widget>[
-      HomeScreen(onNavigateToTickets: _goToTicketsTab), // Pass the callback
+      HomeScreen(onNavigateToTickets: _goToTicketsTab),
       TicketListScreen(token: widget.token),
-      CreateTicketScreen(token: widget.token),
-      // NotificationScreen(token: widget.token), // Removed NotificationScreen
-      ProfileScreen(token: widget.token),
+      ProfileScreen(token: widget.token), // ProfileScreen is now at index 2
     ];
   }
 
@@ -43,7 +39,7 @@ class _UserMainScreenState extends State<UserMainScreen> {
 
   void _goToTicketsTab() {
     setState(() {
-      _selectedIndex = 1; // Index of the 'Tiket' tab (remains the same if NotificationScreen was at index 3 and removed)
+      _selectedIndex = 1; // Index of the 'Tiket' tab
     });
   }
 
@@ -82,11 +78,6 @@ class _UserMainScreenState extends State<UserMainScreen> {
             icon: Icon(Icons.list_alt),
             label: 'Tiket',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_box),
-            label: 'Buat Tiket',
-          ),
-          // Removed Notification BottomNavigationBarItem
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Profil',
