@@ -7,7 +7,7 @@ import '../models/notification.dart';
 class NotificationService {
   // Use 10.0.2.2 for Android emulator to connect to host machine's localhost
   // If running on a physical device, replace with your host machine's actual IP address
-  static const String baseUrl = 'http://10.101.157.163:8083';
+  static const String baseUrl = 'http://192.168.18.178:8083';
 
   Future<List<Notification>> getNotifications(String token) async {
     try {

@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:fixitcampus_mobile/src/models/ticket.dart';
 import 'package:fixitcampus_mobile/src/services/ticket_service.dart';
@@ -9,12 +8,14 @@ class TicketDetailScreen extends StatefulWidget {
   final String ticketId;
   final String token;
 
-  const TicketDetailScreen(
-      {Key? key, required this.ticketId, required this.token})
-      : super(key: key);
+  const TicketDetailScreen({
+    super.key,
+    required this.ticketId,
+    required this.token,
+  });
 
   @override
-  _TicketDetailScreenState createState() => _TicketDetailScreenState();
+  State<TicketDetailScreen> createState() => _TicketDetailScreenState();
 }
 
 class _TicketDetailScreenState extends State<TicketDetailScreen> {
@@ -23,6 +24,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   String? _error;
   bool _isLoading = true;
   String? _userRole;
+
+  static const Color primaryColor = Color(0xFF795548);
+  static const Color backgroundColor = Color(0xFFFFF8F2);
+  static const Color fieldColor = Color(0xFFF3ECE7);
 
   @override
   void initState() {
@@ -42,18 +47,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Future<void> _fetchTicket() async {
-    setState(() {
-      _isLoading = true;
-    });
-    log('Fetching ticket with id: ${widget.ticketId}');
-    log('Token: ${widget.token}');
+    setState(() => _isLoading = true);
     try {
       final result =
           await TicketService.getTicket(widget.ticketId, widget.token);
       setState(() {
         _ticket = result;
-        _isLoading = false;
         _error = null;
+        _isLoading = false;
       });
     } catch (e) {
       log('Error fetching ticket: $e');
@@ -70,45 +71,63 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           widget.ticketId, status, widget.token);
       await _fetchTicket();
     } catch (e) {
-      log('Error updating status: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update status: $e')),
+        SnackBar(content: Text('Gagal update status: $e')),
       );
     }
   }
 
   void _showStatusUpdateDialog() {
     String selectedStatus = _ticket?.status ?? 'open';
+
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (_) {
         return AlertDialog(
-          title: Text('Update Status'),
-          content: DropdownButton<String>(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text(
+            'Update Status',
+            style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+          ),
+          content: DropdownButtonFormField<String>(
             value: selectedStatus,
-            items: ['open', 'in_progress', 'closed']
-                .map((status) => DropdownMenuItem(
-                      value: status,
-                      child: Text(status),
-                    ))
-                .toList(),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: fieldColor,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'open', child: Text('Open')),
+              DropdownMenuItem(
+                  value: 'in_progress', child: Text('In Progress')),
+              DropdownMenuItem(value: 'closed', child: Text('Closed')),
+            ],
             onChanged: (value) {
-              if (value != null) {
-                selectedStatus = value;
-              }
+              if (value != null) selectedStatus = value;
             },
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
+              child: const Text('Batal'),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               onPressed: () {
                 Navigator.pop(context);
                 _updateStatus(selectedStatus);
               },
-              child: Text('Save'),
+              child: const Text('Simpan'),
             ),
           ],
         );
@@ -116,15 +135,37 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     );
   }
 
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label: ',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: primaryColor,
+            ),
+          ),
+          Expanded(child: Text(value)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: Text('Ticket Details'),
+        title: const Text('Detail Tiket'),
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
         actions: [
           if (_userRole == 'admin')
             IconButton(
-              icon: Icon(Icons.edit),
+              icon: const Icon(Icons.edit),
               onPressed: _showStatusUpdateDialog,
             ),
         ],
@@ -132,24 +173,47 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       body: RefreshIndicator(
         onRefresh: _fetchTicket,
         child: _isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator())
             : _error != null
                 ? Center(child: Text(_error!))
-                : Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Title: ${_ticket!.title}',
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 10),
-                        Text('Description: ${_ticket!.description}'),
-                        SizedBox(height: 10),
-                        Text('Status: ${_ticket!.status}'),
-                        SizedBox(height: 10),
-                        Text('Created At: ${_ticket!.createdAt}'),
-                      ],
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Card(
+                      elevation: 10,
+                      shadowColor: primaryColor.withOpacity(0.25),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Center(
+                              child: Icon(
+                                Icons.confirmation_number,
+                                size: 48,
+                                color: primaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _ticket!.title,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: primaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            _infoRow(
+                                'Deskripsi', _ticket!.description ?? '-'),
+                            _infoRow('Status', _ticket!.status),
+                            _infoRow(
+                                'Dibuat', _ticket!.createdAt.toString()),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
       ),

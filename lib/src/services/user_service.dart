@@ -6,7 +6,7 @@ import 'package:fixitcampus_mobile/src/models/user.dart'; // Import the User mod
 import 'package:jwt_decoder/jwt_decoder.dart'; // Import jwt_decoder
 
 class UserService {
-  static const String baseUrl = 'http://10.101.157.163:8081';
+  static const String baseUrl = 'http://192.168.18.178:8081';
 
   // LOGIN
   static Future<Map<String, dynamic>> login(

@@ -7,7 +7,7 @@ import '../models/report_summary.dart';
 class ReportingService {
   // Use 10.0.2.2 for Android emulator to connect to host machine's localhost
   // If running on a physical device, replace with your host machine's actual IP address
-  static const String baseUrl = 'http://10.101.157.163:8084';
+  static const String baseUrl = 'http://192.168.18.178:8084';
 
   Future<ReportSummary> getSummary(String token) async {
     try {
