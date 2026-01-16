@@ -2,7 +2,7 @@ class Notification {
   final String id;
   final String event;
   final String message;
-  final String createdAt;
+  final DateTime createdAt; // Changed to DateTime
 
   Notification({
     required this.id,
@@ -16,7 +16,7 @@ class Notification {
       id: json['_id'],
       event: json['event'],
       message: json['message'],
-      createdAt: json['createdAt'],
+      createdAt: DateTime.parse(json['createdAt']).toLocal(), // Parse as DateTime and convert to local time
     );
   }
 }

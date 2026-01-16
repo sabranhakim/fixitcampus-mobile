@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fixitcampus_mobile/src/screens/home_screen.dart';
 import 'package:fixitcampus_mobile/src/screens/ticket_list_screen.dart';
 import 'package:fixitcampus_mobile/src/screens/create_ticket_screen.dart';
-import 'package:fixitcampus_mobile/src/screens/notification_screen.dart';
+// import 'package:fixitcampus_mobile/src/screens/notification_screen.dart'; // Remove import for NotificationScreen
 import 'package:fixitcampus_mobile/src/screens/profile_screen.dart';
 import 'package:fixitcampus_mobile/src/services/storage_service.dart';
 import 'package:fixitcampus_mobile/src/screens/login_screen.dart';
@@ -30,7 +30,7 @@ class _UserMainScreenState extends State<UserMainScreen> {
       HomeScreen(onNavigateToTickets: _goToTicketsTab), // Pass the callback
       TicketListScreen(token: widget.token),
       CreateTicketScreen(token: widget.token),
-      NotificationScreen(token: widget.token),
+      // NotificationScreen(token: widget.token), // Removed NotificationScreen
       ProfileScreen(token: widget.token),
     ];
   }
@@ -43,7 +43,7 @@ class _UserMainScreenState extends State<UserMainScreen> {
 
   void _goToTicketsTab() {
     setState(() {
-      _selectedIndex = 1; // Index of the 'Tiket' tab
+      _selectedIndex = 1; // Index of the 'Tiket' tab (remains the same if NotificationScreen was at index 3 and removed)
     });
   }
 
@@ -86,10 +86,7 @@ class _UserMainScreenState extends State<UserMainScreen> {
             icon: Icon(Icons.add_box),
             label: 'Buat Tiket',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifikasi',
-          ),
+          // Removed Notification BottomNavigationBarItem
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Profil',

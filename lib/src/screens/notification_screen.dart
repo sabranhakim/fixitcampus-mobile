@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fixitcampus_mobile/src/models/notification.dart' as my_notification;
 import 'package:fixitcampus_mobile/src/services/notification_service.dart';
+import 'package:intl/intl.dart'; // Import intl package
 
 class NotificationScreen extends StatefulWidget {
   final String token;
@@ -49,7 +50,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               return ListTile(
                 title: Text(notification.message),
                 subtitle: Text(notification.event),
-                trailing: Text(notification.createdAt),
+                trailing: Text(DateFormat('dd-MM-yyyy HH:mm').format(notification.createdAt)), // Formatted createdAt
               );
             },
           );
